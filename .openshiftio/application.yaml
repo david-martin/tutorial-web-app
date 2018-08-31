@@ -22,23 +22,18 @@ parameters:
     displayName: Source Directory
     value: .
     required: true
-  - name: OUTPUT_DIR
-    description: The location of the compiled static files from your web apps builder
-    displayName: Output Directory
-    value: build
-    required: false
   - name: GITHUB_WEBHOOK_SECRET
     description: A secret string used to configure the GitHub webhook.
     displayName: GitHub Webhook Secret
     required: true
     from: '[a-zA-Z0-9]{40}'
     generate: expression
+  - name: OPENSHIFT_OAUTHCLIENT_ID
+    description: The OAuthClient id in OpenShift to use for auth
+    displayName: OAuthClient ID
+    value: tutorial-web-app
+    required: true
 objects:
-- apiVersion: v1
-  kind: ImageStream
-  metadata:
-    name: react-demo-app-builder
-  spec: {}
 - apiVersion: v1
   kind: ImageStream
   metadata:
@@ -47,32 +42,22 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: web-app-builder-runtime
+    name: node-builder-runtime
   spec:
     tags:
     - name: latest
       from:
         kind: DockerImage
-        name: bucharestgold/centos7-s2i-web-app:0.0.2
-- apiVersion: v1
-  kind: ImageStream
-  metadata:
-    name: nginx-image-runtime
-  spec:
-    tags:
-    - name: latest
-      from:
-        kind: DockerImage
-        name: 'centos/nginx-112-centos7:latest'
+        name: centos/nodejs-8-centos7:latest
 - apiVersion: v1
   kind: BuildConfig
   metadata:
-    name: react-demo-app-builder
+    name: react-demo-app-runtime
   spec:
     output:
       to:
         kind: ImageStreamTag
-        name: react-demo-app-builder:latest
+        name: react-demo-app-runtime:latest
     postCommit: {}
     resources:
       limits:
@@ -86,15 +71,11 @@ objects:
     strategy:
       sourceStrategy:
         env:
-          - name: OUTPUT_DIR
-            value: ${OUTPUT_DIR}
           - name: YARN_ENABLED
             value: 'true'
-          - name: BUILD_ENV
-            value: 'OCP'
         from:
           kind: ImageStreamTag
-          name: web-app-builder-runtime:latest
+          name: node-builder-runtime:latest
         incremental: true
       type: Source
     triggers:
@@ -104,49 +85,6 @@ objects:
     - type: ConfigChange
     - imageChange: {}
       type: ImageChange
-  status:
-    lastVersion: 0
-- apiVersion: v1
-  kind: BuildConfig
-  metadata:
-    name: react-demo-app-runtime
-  spec:
-    output:
-      to:
-        kind: ImageStreamTag
-        name: react-demo-app-runtime:latest
-    postCommit: {}
-    resources:
-      limits:
-        memory: 2Gi
-    source:
-      type: Image
-      images:
-        - from:
-            kind: ImageStreamTag
-            name: react-demo-app-builder:latest
-          paths:
-            - destinationDir: .
-              sourcePath: /opt/app-root/output/.
-    strategy:
-      sourceStrategy:
-        from:
-          kind: ImageStreamTag
-          name: nginx-image-runtime:latest
-        incremental: true
-      type: Source
-    triggers:
-    - github:
-        secret: ${GITHUB_WEBHOOK_SECRET}
-      type: GitHub
-    - type: ConfigChange
-    - type: ImageChange
-      imageChange: {}
-    - type: ImageChange
-      imageChange:
-        from:
-          kind: ImageStreamTag
-          name: react-demo-app-builder:latest
   status:
     lastVersion: 0
 - apiVersion: v1
