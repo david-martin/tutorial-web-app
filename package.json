@@ -70,7 +70,11 @@
     "lint:js": "eslint --max-warnings 0 src",
     "locales": "node scripts/syncLocales --check",
     "lint:locales": "node scripts/syncLocales --check",
-    "docker:build": "docker build -t integreatly-web-app .",
+    "docker:build": "./scripts/docker_build.sh",
+    "docker:build:release": "./scripts/docker_build_release.sh",
+    "docker:push": "./scripts/docker_push.sh",
+    "docker:push:release": "./scripts/docker_push_release.sh",
+    "release:validate": "./scripts/validateRelease.sh",
     "preinstall": "node -v; npm -v;",
     "postbuild": "[ \"$BUILD_ENV\" != OCP ] && exit 0; yarn install --production --ignore-scripts --prefer-offline;",
     "oauthclient": "oc --server https://localhost:8443 get oauthclient/tutorial-web-app || oc --server https://localhost:8443 create -f ./oauthclient.yml"
