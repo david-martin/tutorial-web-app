@@ -15,7 +15,7 @@ app.get('/config.js', (req, res) => {
       clientId: '${process.env.OPENSHIFT_OAUTHCLIENT_ID}',
       accessTokenUri: 'https://${process.env.OPENSHIFT_HOST}/oauth/token',
       authorizationUri: 'https://${process.env.OPENSHIFT_HOST}/oauth/authorize',
-      redirectUri: '${process.env.REDIRECT_HOST}',
+      redirectUri: '${process.env.REDIRECT_URI}',
       scopes: ['user:full'],
       masterUri: 'https://${process.env.OPENSHIFT_HOST}'
     };`)

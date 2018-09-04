@@ -33,6 +33,19 @@ parameters:
     required: true
     from: '[a-zA-Z0-9]{40}'
     generate: expression
+  - name: OPENSHIFT_OAUTHCLIENT_ID
+    description: The OAuthClient id in OpenShift to use for auth
+    displayName: OAuthClient ID
+    value: tutorial-web-app
+    required: true
+  - name: REDIRECT_URI
+    description: The full uri to redirect to during the OAuth flow e.g. http://myapp.example.com/oauth/callback
+    displayName: Redirect URI
+    required: true
+  - name: OPENSHIFT_HOST
+    description: The OpenShift master/api host e.g. openshift.example.com:8443
+    displayName: OpenShift Host
+    required: true
 objects:
 - apiVersion: v1
   kind: ImageStream
@@ -57,13 +70,13 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: nginx-image-runtime
+    name: node-image-runtime
   spec:
     tags:
     - name: latest
       from:
         kind: DockerImage
-        name: 'centos/nginx-112-centos7:latest'
+        name: 'bucharestgold/centos7-s2i-nodejs:10.x'
 - apiVersion: v1
   kind: BuildConfig
   metadata:
@@ -127,12 +140,12 @@ objects:
             name: react-demo-app-builder:latest
           paths:
             - destinationDir: .
-              sourcePath: /opt/app-root/output/.
+              sourcePath: /opt/app-root/build/.
     strategy:
       sourceStrategy:
         from:
           kind: ImageStreamTag
-          name: nginx-image-runtime:latest
+          name: node-image-runtime:latest
         incremental: true
       type: Source
     triggers:
@@ -175,6 +188,12 @@ objects:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+          - name: OPENSHIFT_OAUTHCLIENT_ID
+            value: ${OPENSHIFT_OAUTHCLIENT_ID}
+          - name: OPENSHIFT_HOST
+            value: ${OPENSHIFT_HOST}
+          - name: REDIRECT_URI
+            value: ${REDIRECT_URI}
           image: react-demo-app-runtime
           imagePullPolicy: IfNotPresent
           name: react-demo-app-runtime

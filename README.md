@@ -25,6 +25,28 @@ Start the server, specifying the OpenShift host (This will disable mock data).
 OPENSHIFT_HOST=localhost:8443 yarn start:dev
 ```
 
+# local development with containers
+
+Build the image
+
+```
+docker build -t webapp .
+```
+
+Start the image, then visit http://localhost:5001. This setup will use mock data.
+
+To use real data (i.e. integrate with an openshift cluster), set the required env vars accordingly. For example:
+
+```
+docker run -it --rm -e OPENSHIFT_HOST=192.168.42.1:8443 -e OPENSHIFT_OAUTHCLIENT_ID=tutorial-webapp -e REDIRECT_URI=http://localhost:5001/oauth/callback -e NODE_ENV=production -p 5001:5001 webapp
+```
+
+Ensure you have created the OAuthClient in the OpenShift cluster too:
+
+```
+yarn run oauthclient
+```
+
 # remote development
 
 ```

@@ -6,3 +6,6 @@ build
 coverage
 Dockerfile
 node_modules
+README.md
+LICENSE
+oauthclient.yml
